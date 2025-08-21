@@ -5,136 +5,176 @@
 #include <map>
 #include <algorithm>
 
+#include "attendance.h"
+
 using namespace std;
 
-struct Node {
-	string w;
-	string wk;
+struct AttendanceData {
+	string name;
+	Weekday weekday;
 };
 
-map<string, int> id1;
-int id_cnt = 0;
+map<string, int> registerBackNumber;
+int uniqueBackNumber = 0;
 
-//dat[사용자ID][요일]
-int dat[100][100];
-int points[100];
-int grade[100];
-string names[100];
+int points[MAX_PLAYERS];
+int grade[MAX_PLAYERS];
+string names[MAX_PLAYERS];
 
-int wed[100];
-int weeken[100];
+int countTraining[MAX_PLAYERS];
+int countWeekendAttendance[MAX_PLAYERS];
 
-void input2(string w, string wk) {
-	//ID 부여
-	if (id1.count(w) == 0) {
-		id1.insert({ w, ++id_cnt });
+string gradeString[3] = { "NORMAL", "GOLD", "SILVER" };
 
-		if (w == "Daisy") {
-			int debug = 1;
-		}
+void readAttendanceDataFromFileAndRegisterAttendanceData();
+Weekday changeWeekdayStringToEnum(const string& weekday);
+void registerAttendanceData(const AttendanceData& inputData);
+int getPlayerBackNumber(const string& name);
+void increaseAttendancePoint(int playerBackNumber);
+void checkTraining(int playerBackNumber, const AttendanceData& inputData);
+void checkWeekendAttendance(int playerBackNumber, const AttendanceData& inputData);
+bool isWeekend(const AttendanceData& inputData);
+void checkBonusPoint();
+void checkGrade();
+void printPlayerAttendanceResult();
+void printCandidateForElimination();
+bool isCandidateForElimination(int playerBackNumber);
 
-		names[id_cnt] = w;
-	}
-	int id2 = id1[w];
+int main() {
 
-	//디버깅용
-	if (w == "Daisy") {
-		int debug = 1;
-	}
+	readAttendanceDataFromFileAndRegisterAttendanceData();
 
+	checkBonusPoint();
+	checkGrade();
 
-	int add_point = 0;
-	int index = 0;
-	if (wk == "monday") {
-		index = 0;
-		add_point++;
-	}
-	if (wk == "tuesday") {
-		index = 1;
-		add_point++;
-	}
-	if (wk == "wednesday") {
-		index = 2;
-		add_point += 3;
-		wed[id2] += 1;
-	}
-	if (wk == "thursday") {
-		index = 3;
-		add_point++;
-	}
-	if (wk == "friday") {
-		index = 4;
-		add_point++;
-	}
-	if (wk == "saturday") {
-		index = 5;
-		add_point += 2;
-		weeken[id2] += 1;
-	}
-	if (wk == "sunday") {
-		index = 6;
-		add_point += 2;
-		weeken[id2] += 1;
-	}
-
-	//사용자ID별 요일 데이터에 1씩 증가
-	dat[id2][index] += 1;
-	points[id2] += add_point;
+	printPlayerAttendanceResult();
+	printCandidateForElimination();
 }
 
-void input() {
+void readAttendanceDataFromFileAndRegisterAttendanceData()
+{
 	ifstream fin{ "attendance_weekday_500.txt" }; //500개 데이터 입력
-	for (int i = 0; i < 500; i++) {
-		string t1, t2;
-		fin >> t1 >> t2;
-		input2(t1, t2);
+	for (int inputNum = 0; inputNum < MAX_INPUT_NUM; inputNum++) {
+		AttendanceData inputData;
+		string weekday;
+		fin >> inputData.name >> weekday;
+
+		inputData.weekday = changeWeekdayStringToEnum(weekday);
+		registerAttendanceData(inputData);
 	}
+}
 
-	for (int i = 1; i <= id_cnt; i++) {
-		if (dat[i][2] > 9) {
-			points[i] += 10;
+Weekday changeWeekdayStringToEnum(const string& weekday)
+{
+	if (weekday == "monday") return MONDAY;
+	else if (weekday == "tuesday") return TUESDAY;
+	else if (weekday == "wednesday") return WEDNESDAY;
+	else if (weekday == "thursday") return THURSDAY;
+	else if (weekday == "friday") return FRIDAY;
+	else if (weekday == "saturday") return SATURDAY;
+	else if (weekday == "sunday") return SUNDAY;
+}
+
+void registerAttendanceData(const AttendanceData& inputData) {
+
+	int playerBackNumber = getPlayerBackNumber(inputData.name);
+
+	increaseAttendancePoint(playerBackNumber);
+
+	checkTraining(playerBackNumber, inputData);
+	checkWeekendAttendance(playerBackNumber, inputData);
+}
+
+int getPlayerBackNumber(const string& name)
+{
+	if (registerBackNumber.count(name) == 0) {
+		registerBackNumber.insert({ name, ++uniqueBackNumber });
+
+		names[uniqueBackNumber] = name;
+	}
+	return registerBackNumber[name];
+}
+
+void increaseAttendancePoint(int playerBackNumber)
+{
+	++points[playerBackNumber];
+}
+
+void checkTraining(int playerBackNumber, const AttendanceData& inputData)
+{
+	if (inputData.weekday != WEDNESDAY) return;
+
+	points[playerBackNumber] += 2;
+	++countTraining[playerBackNumber];
+}
+
+void checkWeekendAttendance(int playerBackNumber, const AttendanceData& inputData)
+{
+	if (isWeekend(inputData) == false) return;
+	
+	++points[playerBackNumber];
+	++countWeekendAttendance[playerBackNumber];
+}
+
+bool isWeekend(const AttendanceData& inputData)
+{
+	return inputData.weekday == SATURDAY || inputData.weekday == SUNDAY;
+}
+
+void checkBonusPoint()
+{
+	for (int playerBackNumber = 1; playerBackNumber <= uniqueBackNumber; playerBackNumber++) {
+		if (countTraining[playerBackNumber] >= BONUS_TRAINING_COUNT) {
+			points[playerBackNumber] += BONUS_POINT;
 		}
 
-		if (dat[i][5] + dat[i][6] > 9) {
-			points[i] += 10;
+		if (countWeekendAttendance[playerBackNumber] >= BONUS_WEEKEND_COUNT) {
+			points[playerBackNumber] += BONUS_POINT;
 		}
+	}
+}
 
-		if (points[i] >= 50) {
-			grade[i] = 1;
+void checkGrade()
+{
+	for (int playerBackNumber = 1; playerBackNumber <= uniqueBackNumber; playerBackNumber++) {
+
+		if (points[playerBackNumber] >= GOLD_POINT) {
+			grade[playerBackNumber] = GOLD_GRADE;
 		}
-		else if (points[i] >= 30) {
-			grade[i] = 2;
+		else if (points[playerBackNumber] >= SILVER_POINT) {
+			grade[playerBackNumber] = SILVER_GRADE;
 		}
 		else {
-			grade[i] = 0;
-		}
-
-		cout << "NAME : " << names[i] << ", ";
-		cout << "POINT : " << points[i] << ", ";
-		cout << "GRADE : ";
-
-		if (grade[i] == 1) {
-			cout << "GOLD" << "\n";
-		}
-		else if (grade[i] == 2) {
-			cout << "SILVER" << "\n";
-		}
-		else {
-			cout << "NORMAL" << "\n";
+			grade[playerBackNumber] = NORMAL_GRADE;
 		}
 	}
+}
 
+void printPlayerAttendanceResult()
+{
+	for (int playerBackNumber = 1; playerBackNumber <= uniqueBackNumber; playerBackNumber++) {
+
+		cout << "NAME : " << names[playerBackNumber] << ", ";
+		cout << "POINT : " << points[playerBackNumber] << ", ";
+		cout << "GRADE : " << gradeString[grade[playerBackNumber]] << "\n";
+	}
+}
+
+void printCandidateForElimination()
+{
 	std::cout << "\n";
 	std::cout << "Removed player\n";
 	std::cout << "==============\n";
-	for (int i = 1; i <= id_cnt; i++) {
+	for (int playerBackNumber = 1; playerBackNumber <= uniqueBackNumber; playerBackNumber++) {
 
-		if (grade[i] != 1 && grade[i] != 2 && wed[i] == 0 && weeken[i] == 0) {
-			std::cout << names[i] << "\n";
+		if (isCandidateForElimination(playerBackNumber)) {
+			std::cout << names[playerBackNumber] << "\n";
 		}
 	}
 }
 
-int main() {
-	input();
+bool isCandidateForElimination(int playerBackNumber)
+{
+	return grade[playerBackNumber] != GOLD_GRADE && grade[playerBackNumber] != SILVER_GRADE && countTraining[playerBackNumber] == 0 && countWeekendAttendance[playerBackNumber] == 0;
 }
+
