@@ -10,8 +10,8 @@ class IGradeInterface;
 class PlayerData
 {
 public:
-	PlayerData(const std::string& name)
-		: _name(name), _point(0), _grade(new GradeThreeLevel()), _countTraining(0), _countWeekendAttendance(0) {}
+	PlayerData(const std::string& name, IGradeInterface * grade)
+		: _name(name), _point(0), _grade(grade), _countTraining(0), _countWeekendAttendance(0) {}
 	
 	void registerAttendanceData(const Weekday& weekday);
 	void checkBonusPoint();

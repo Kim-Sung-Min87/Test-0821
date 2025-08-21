@@ -1,6 +1,7 @@
 #include "baseball_team.h"
 #include <iostream>
 #include "player_data.h"
+#include "player_factory.h"
 
 using std::string;
 using std::cout;
@@ -9,9 +10,8 @@ PlayerData* BaseballTeam::getPlayer(const string& name)
 {
 	if (_registerPlayers.count(name) == 0) {
 
-		PlayerData * newPlayer = new PlayerData(name);
+		PlayerData* newPlayer = PlayerGradeThreeLevelFactory::getInstance().createPlayer(name);
 		_registerPlayers.insert({ name, newPlayer });
-
 		_players.push_back(newPlayer);
 	}
     return _registerPlayers[name];
