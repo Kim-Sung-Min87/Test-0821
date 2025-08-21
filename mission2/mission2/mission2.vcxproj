@@ -126,12 +126,18 @@
     <Text Include="attendance_weekday_500.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="attendance.cpp" />
+    <ClCompile Include="baseball_team.cpp" />
+    <ClCompile Include="grade_three_level.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="player_data.cpp" />
     <ClCompile Include="unit_test.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attendance.h" />
+    <ClInclude Include="baseball_team.h" />
+    <ClInclude Include="grade_interface.h" />
+    <ClInclude Include="grade_three_level.h" />
+    <ClInclude Include="player_data.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
