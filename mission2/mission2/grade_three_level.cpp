@@ -18,13 +18,7 @@ bool GradeThreeLevel::isCandidateForElimination(int point)
 
 int GradeThreeLevel::getGrade(int point)
 {
-	if (point >= GOLD_POINT) {
-		return GOLD_GRADE;
-	}
-	else if (point >= SILVER_POINT) {
-		return SILVER_GRADE;
-	}
-	else {
-		return NORMAL_GRADE;
-	}
+	if (point >= GOLD_POINT) return GOLD_GRADE;
+	else if (point >= SILVER_POINT) return SILVER_GRADE;
+	else return NORMAL_GRADE;
 }

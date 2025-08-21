@@ -1,0 +1,250 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+        <meta charset="utf-8"/>
+	    <title>unit_test.cpp</title>
+	    <link href="../../third-party/google-code-prettify/prettify-CppCoverage.css" type="text/css" rel="stylesheet" />
+	    <script type="text/javascript" src="../../third-party/google-code-prettify/prettify.js"></script>
+	</head>
+    <body onload="prettyPrint()">
+        <h4></h4>
+        <pre class="prettyprint lang-cpp linenums">
+#include "gmock/gmock.h"
+
+#include &lt;string&gt;
+
+#include "attendance.h"
+#include "player_data.h"
+#include "baseball_team.h"
+
+#include &lt;iostream&gt;
+#include &lt;fstream&gt;
+
+using namespace std;
+
+class AttendanceTestFixture : public ::testing::Test {
+public:
+	BaseballTeam team;
+	PlayerData* player;
+	PlayerData* player2;
+
+<span style = "background-color:#dfd">	void registerAttendanceDataTenTimes(PlayerData* player, Weekday weekday) {
+		for (int i = 0; i &lt; 10; ++i) {
+			player-&gt;registerAttendanceData(weekday);
+		}
+	}</span>
+
+	Weekday changeWeekdayStringToEnum(const string&amp; weekday)
+<span style = "background-color:#dfd">	{
+		if (weekday == "monday") return MONDAY;
+		else if (weekday == "tuesday") return TUESDAY;
+		else if (weekday == "wednesday") return WEDNESDAY;
+		else if (weekday == "thursday") return THURSDAY;
+		else if (weekday == "friday") return FRIDAY;
+		else if (weekday == "saturday") return SATURDAY;
+		else if (weekday == "sunday") return SUNDAY;
+	}</span>
+
+protected:
+<span style = "background-color:#dfd">	void SetUp() override {}
+	void TearDown() override {}</span>
+};
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, NonPlayer) {</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(0, team.getPlayerCount());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CreatePlayer) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(1, team.getPlayerCount());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CreatePlayerDuplication) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");
+	player2 = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(1, team.getPlayerCount());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CreatePlayerOther) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");
+	player2 = team.getPlayer("Daisy");</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(2, team.getPlayerCount());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, AttendanceWeekday) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	player-&gt;registerAttendanceData(MONDAY);</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(1, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(0, player-&gt;getCountWeekendAttendance());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, AttendanceWednesday) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	player-&gt;registerAttendanceData(WEDNESDAY);</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(3, player-&gt;getPoint());
+	EXPECT_EQ(1, player-&gt;getCountTraining());
+	EXPECT_EQ(0, player-&gt;getCountWeekendAttendance());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, AttendanceWeekend) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	player-&gt;registerAttendanceData(SATURDAY);</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(2, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(1, player-&gt;getCountWeekendAttendance());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckBonusPointTraining) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, WEDNESDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(40, player-&gt;getPoint());
+	EXPECT_EQ(10, player-&gt;getCountTraining());
+	EXPECT_EQ(0, player-&gt;getCountWeekendAttendance());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckBonusPointWeekend) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, SATURDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(30, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(10, player-&gt;getCountWeekendAttendance());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckGradeGold) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, WEDNESDAY);
+	registerAttendanceDataTenTimes(player, MONDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(50, player-&gt;getPoint());
+	EXPECT_EQ(10, player-&gt;getCountTraining());
+	EXPECT_EQ(0, player-&gt;getCountWeekendAttendance());
+	EXPECT_EQ("GOLD", player-&gt;getGradeString());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckGradeSilver) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, SATURDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(30, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(10, player-&gt;getCountWeekendAttendance());
+	EXPECT_EQ("SILVER", player-&gt;getGradeString());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckGradeNormal) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, MONDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(10, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(0, player-&gt;getCountWeekendAttendance());
+	EXPECT_EQ("NORMAL", player-&gt;getGradeString());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckCandidateForEliminationTrue) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, MONDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(10, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(0, player-&gt;getCountWeekendAttendance());
+	EXPECT_EQ(true, player-&gt;isCandidateForElimination());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, CheckCandidateForEliminationFalse) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, SATURDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(30, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(10, player-&gt;getCountWeekendAttendance());
+	EXPECT_EQ(false, player-&gt;isCandidateForElimination());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, PrintPlayerData) {</span>
+
+<span style = "background-color:#dfd">	player = team.getPlayer("Umar");</span>
+
+<span style = "background-color:#dfd">	registerAttendanceDataTenTimes(player, SATURDAY);
+	player-&gt;checkBonusPoint();</span>
+
+<span style = "background-color:#dfd">	EXPECT_EQ(30, player-&gt;getPoint());
+	EXPECT_EQ(0, player-&gt;getCountTraining());
+	EXPECT_EQ(10, player-&gt;getCountWeekendAttendance());
+	EXPECT_EQ("NAME : Umar, POINT : 30, GRADE : SILVER\n", player-&gt;getPlayerResult());
+}</span>
+
+<span style = "background-color:#dfd">TEST_F(AttendanceTestFixture, TestFromFile) {</span>
+
+<span style = "background-color:#dfd">	ifstream fin{ "attendance_weekday_500.txt" }; //500°³ µ¥ÀÌÅÍ ÀÔ·Â
+	for (int inputNum = 0; inputNum &lt; MAX_INPUT_NUM; inputNum++) {
+		string name;
+		string weekday;
+		fin &gt;&gt; name &gt;&gt; weekday;</span>
+
+<span style = "background-color:#dfd">		player = team.getPlayer(name);
+		player-&gt;registerAttendanceData(changeWeekdayStringToEnum(weekday));
+	}</span>
+
+<span style = "background-color:#dfd">	team.checkBonusPointForAllPlayers();
+	team.printPlayers();
+	team.printCandidateForElimination();
+}</span>
+
+
+</pre>
+        <hr />
+        <table width="100%">
+            <thead>
+                <tr>
+                    <th align="center">
+                        <small>Generated by</small>
+                        <a href="https://github.com/OpenCppCoverage/OpenCppCoverage/releases">
+                            <strong>OpenCppCoverage (Version: 0.9.9.0)</strong>
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+        </table>
+    </body>
+</html>

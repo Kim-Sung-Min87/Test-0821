@@ -138,6 +138,7 @@
     <ClInclude Include="grade_interface.h" />
     <ClInclude Include="grade_three_level.h" />
     <ClInclude Include="player_data.h" />
+    <ClInclude Include="player_factory.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
