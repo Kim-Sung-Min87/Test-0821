@@ -40,7 +40,8 @@ void printPlayerAttendanceResult();
 void printCandidateForElimination();
 bool isCandidateForElimination(int playerBackNumber);
 
-int main() {
+
+void logic() {
 
 	readAttendanceDataFromFileAndRegisterAttendanceData();
 

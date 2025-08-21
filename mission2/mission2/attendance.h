@@ -25,3 +25,4 @@ const int BONUS_TRAINING_COUNT = 10;
 const int BONUS_WEEKEND_COUNT = 10;
 
 const int MAX_INPUT_NUM = 500;
+
